@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicCare | Notifications</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/dashboard.css">
+  <style>
+    .notif-main { background: #f8fafc; min-height: calc(100vh - 56px); }
+
+    .notif-item {
+      background: #fff;
+      border-radius: 14px;
+      border: 1px solid #e2e8f0;
+      padding: 1.1rem 1.5rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      transition: all 0.2s;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .notif-item.unread {
+      border-left: 4px solid #1a56db;
+      background: #f8fbff;
+    }
+
+    .notif-item:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      transform: translateY(-1px);
+    }
+
+    .notif-icon {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .ni-blue { background: #eff6ff; color: #1a56db; }
+    .ni-green { background: #f0fdf4; color: #15803d; }
+    .ni-amber { background: #fff7ed; color: #c2410c; }
+    .ni-red { background: #fef2f2; color: #b91c1c; }
+    .ni-purple { background: #fdf4ff; color: #7c3aed; }
+
+    .notif-body { flex: 1; }
+    .notif-title { font-size: 0.88rem; font-weight: 600; color: #0d1b2a; margin-bottom: 0.25rem; }
+    .notif-desc { font-size: 0.82rem; color: #64748b; line-height: 1.5; }
+    .notif-time { font-size: 0.75rem; color: #94a3b8; margin-top: 0.35rem; }
+
+    .unread-dot {
+      width: 9px; height: 9px;
+      background: #1a56db;
+      border-radius: 50%;
+      position: absolute;
+      top: 1.1rem;
+      right: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .notif-section-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #94a3b8;
+      margin: 1.5rem 0 0.75rem;
+      padding-left: 0.25rem;
+    }
+
+    .empty-notif {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #94a3b8;
+    }
+
+    .empty-notif i { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
+
+    .filter-pills {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .filter-pill {
+      border: 1.5px solid #e2e8f0;
+      background: #fff;
+      border-radius: 50px;
+      padding: 0.35rem 1rem;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-pill.active, .filter-pill:hover {
+      border-color: #1a56db;
+      color: #1a56db;
+      background: #eff6ff;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg bg-white shadow-sm px-4">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-semibold" href="index.html">CivicCare</a>
+    <div class="ms-auto d-flex align-items-center gap-3">
+      <span class="fw-medium" id="navUserName">User</span>
+      <a href="login.html" class="btn btn-sm btn-outline-secondary rounded-3">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<div class="d-flex">
+  <aside class="sidebar">
+    <ul class="nav nav-pills flex-column gap-2">
+      <li><a class="nav-link text-white" href="dashboard.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+      <li><a class="nav-link text-white" href="complaint.html"><i class="bi bi-pencil-square me-2"></i>Raise Complaint</a></li>
+      <li><a class="nav-link text-white" href="track.html"><i class="bi bi-list-check me-2"></i>My Complaints</a></li>
+      <li><a class="nav-link active"><i class="bi bi-bell me-2"></i>Notifications</a></li>
+      <li><a class="nav-link text-white" href="profile.html"><i class="bi bi-person-circle me-2"></i>Profile</a></li>
+    </ul>
+  </aside>
+
+  <main class="notif-main flex-grow-1 p-4">
+
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+      <div>
+        <h4 class="fw-semibold mb-0" style="font-family:'Syne',sans-serif;">Notifications</h4>
+        <div style="font-size:0.82rem;color:#94a3b8;" id="unreadCount">Loading...</div>
+      </div>
+      <button class="btn btn-sm btn-outline-secondary rounded-3" onclick="markAllRead()" style="font-size:0.82rem;">
+        <i class="bi bi-check2-all me-1"></i>Mark all as read
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-pills">
+      <button class="filter-pill active" onclick="setFilter('all', this)">All</button>
+      <button class="filter-pill" onclick="setFilter('status', this)">Status Updates</button>
+      <button class="filter-pill" onclick="setFilter('resolved', this)">Resolved</button>
+      <button class="filter-pill" onclick="setFilter('system', this)">System</button>
+    </div>
+
+    <div id="notifList"></div>
+
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  let notifFilter = 'all';
+
+  function getNotifications() {
+    const complaints = JSON.parse(localStorage.getItem('civiccare_complaints') || '[]');
+    const stored = JSON.parse(localStorage.getItem('civiccare_notifs') || 'null');
+    if (stored) return stored;
+
+    // Generate from complaints
+    const notifs = [];
+    const now = Date.now();
+
+    complaints.forEach((c, i) => {
+      notifs.push({
+        id: `n-${i}-sub`,
+        type: 'status',
+        title: 'Complaint Submitted',
+        desc: `Your complaint #${c.id} (${c.category}) has been received and is under review.`,
+        time: new Date(c.date).toISOString(),
+        read: true,
+        icon: 'bi-inbox',
+        iconClass: 'ni-blue'
+      });
+
+      if (c.status === 'In Progress') {
+        notifs.push({
+          id: `n-${i}-prog`,
+          type: 'status',
+          title: 'Complaint In Progress',
+          desc: `#${c.id} has been assigned to ${c.department} and work has begun.`,
+          time: new Date(new Date(c.date).getTime() + 86400000).toISOString(),
+          read: false,
+          icon: 'bi-arrow-clockwise',
+          iconClass: 'ni-purple'
+        });
+      }
+
+      if (c.status === 'Resolved') {
+        notifs.push({
+          id: `n-${i}-res`,
+          type: 'resolved',
+          title: '🎉 Complaint Resolved!',
+          desc: `Great news! Your complaint #${c.id} (${c.category}) has been resolved by ${c.department}.`,
+          time: new Date(new Date(c.date).getTime() + 3 * 86400000).toISOString(),
+          read: false,
+          icon: 'bi-check-circle-fill',
+          iconClass: 'ni-green'
+        });
+      }
+    });
+
+    // System notifications
+    notifs.push({
+      id: 'n-sys-1',
+      type: 'system',
+      title: 'Welcome to CivicCare!',
+      desc: 'Your account is ready. Start by raising your first complaint or exploring the dashboard.',
+      time: new Date(now - 7 * 86400000).toISOString(),
+      read: true,
+      icon: 'bi-stars',
+      iconClass: 'ni-amber'
+    });
+
+    notifs.push({
+      id: 'n-sys-2',
+      type: 'system',
+      title: 'New Feature: AI Descriptions',
+      desc: 'Upload a photo of any civic issue and our AI will auto-generate a formal complaint for you!',
+      time: new Date(now - 3 * 86400000).toISOString(),
+      read: false,
+      icon: 'bi-lightning-charge-fill',
+      iconClass: 'ni-purple'
+    });
+
+    // Sort by time desc
+    notifs.sort((a,b) => new Date(b.time) - new Date(a.time));
+    localStorage.setItem('civiccare_notifs', JSON.stringify(notifs));
+    return notifs;
+  }
+
+  function setFilter(f, btn) {
+    notifFilter = f;
+    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderNotifs();
+  }
+
+  function markAllRead() {
+    const notifs = getNotifications();
+    notifs.forEach(n => n.read = true);
+    localStorage.setItem('civiccare_notifs', JSON.stringify(notifs));
+    renderNotifs();
+    updateUnreadCount(notifs);
+  }
+
+  function markRead(id) {
+    const notifs = getNotifications();
+    const n = notifs.find(x => x.id === id);
+    if (n) n.read = true;
+    localStorage.setItem('civiccare_notifs', JSON.stringify(notifs));
+    updateUnreadCount(notifs);
+  }
+
+  function updateUnreadCount(notifs) {
+    const unread = notifs.filter(n => !n.read).length;
+    document.getElementById('unreadCount').textContent = unread > 0 ? `${unread} unread notification${unread>1?'s':''}` : 'All caught up!';
+  }
+
+  function timeAgo(iso) {
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    const hrs = Math.floor(mins / 60);
+    const days = Math.floor(hrs / 24);
+    if (days > 0) return `${days} day${days>1?'s':''} ago`;
+    if (hrs > 0) return `${hrs} hour${hrs>1?'s':''} ago`;
+    if (mins > 0) return `${mins} minute${mins>1?'s':''} ago`;
+    return 'Just now';
+  }
+
+  function renderNotifs() {
+    const notifs = getNotifications();
+    const filtered = notifFilter === 'all' ? notifs : notifs.filter(n => n.type === notifFilter);
+    updateUnreadCount(notifs);
+
+    const container = document.getElementById('notifList');
+
+    if (!filtered.length) {
+      container.innerHTML = `<div class="empty-notif"><i class="bi bi-bell-slash"></i><h5 style="font-family:'Syne',sans-serif;color:#94a3b8;">No notifications here</h5><p style="font-size:0.85rem;">You're all caught up!</p></div>`;
+      return;
+    }
+
+    // Group by Today / Earlier
+    const today = new Date().toDateString();
+    const todayItems = filtered.filter(n => new Date(n.time).toDateString() === today);
+    const earlierItems = filtered.filter(n => new Date(n.time).toDateString() !== today);
+
+    let html = '';
+
+    if (todayItems.length) {
+      html += `<div class="notif-section-label">Today</div>`;
+      html += todayItems.map(n => renderNotifItem(n)).join('');
+    }
+
+    if (earlierItems.length) {
+      html += `<div class="notif-section-label">Earlier</div>`;
+      html += earlierItems.map(n => renderNotifItem(n)).join('');
+    }
+
+    container.innerHTML = html;
+  }
+
+  function renderNotifItem(n) {
+    return `
+      <div class="notif-item ${n.read ? '' : 'unread'}" onclick="markRead('${n.id}');this.classList.remove('unread');document.querySelector('.unread-dot[data-id=\\'${n.id}\\']')?.remove();">
+        <div class="notif-icon ${n.iconClass}"><i class="bi ${n.icon}"></i></div>
+        <div class="notif-body">
+          <div class="notif-title">${n.title}</div>
+          <div class="notif-desc">${n.desc}</div>
+          <div class="notif-time"><i class="bi bi-clock me-1"></i>${timeAgo(n.time)}</div>
+        </div>
+        ${!n.read ? `<div class="unread-dot" data-id="${n.id}"></div>` : ''}
+      </div>`;
+  }
+
+  // Load user
+  try {
+    const u = JSON.parse(localStorage.getItem('civiccare_user') || '{}');
+    if (u.name) document.getElementById('navUserName').textContent = u.name;
+  } catch(e) {}
+
+  renderNotifs();
+</script>
+</body>
+</html>

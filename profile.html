@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicCare | Profile & Settings</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/dashboard.css">
+  <style>
+    .profile-main { background: #f8fafc; min-height: calc(100vh - 56px); }
+
+    .profile-header-card {
+      background: linear-gradient(135deg, #0d1b2a, #1a3a6e);
+      border-radius: 18px;
+      padding: 2rem;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .profile-header-card::before {
+      content: '';
+      position: absolute;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(26,86,219,0.3) 0%, transparent 70%);
+      top: -80px; right: -60px;
+    }
+
+    .avatar-circle {
+      width: 72px; height: 72px;
+      background: linear-gradient(135deg, #1a56db, #3b82f6);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.6rem;
+      color: #fff;
+      flex-shrink: 0;
+      border: 3px solid rgba(255,255,255,0.2);
+    }
+
+    .settings-card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+      overflow: hidden;
+      margin-bottom: 1.25rem;
+    }
+
+    .settings-card-header {
+      padding: 1.1rem 1.5rem;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .settings-card-header h6 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      margin: 0;
+      font-size: 0.95rem;
+      color: #0d1b2a;
+    }
+
+    .settings-card-header i { color: #1a56db; font-size: 1rem; }
+
+    .settings-body { padding: 1.5rem; }
+
+    .form-control, .form-select {
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 0.65rem 1rem;
+      font-size: 0.88rem;
+      font-family: 'DM Sans', sans-serif;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: #1a56db;
+      box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+      outline: none;
+    }
+
+    .form-label { font-size: 0.82rem; font-weight: 600; color: #374151; margin-bottom: 0.4rem; }
+
+    .btn-save {
+      background: #1a56db;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0.65rem 1.5rem;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-save:hover { background: #1447c5; transform: translateY(-1px); }
+
+    /* Toggle switches */
+    .setting-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 0;
+      border-bottom: 1px solid #f8fafc;
+    }
+
+    .setting-toggle-row:last-child { border-bottom: none; }
+
+    .toggle-label h6 { font-size: 0.88rem; font-weight: 600; color: #1e293b; margin: 0 0 0.15rem; }
+    .toggle-label p { font-size: 0.78rem; color: #94a3b8; margin: 0; }
+
+    .form-check-input { width: 2.5rem; height: 1.3rem; cursor: pointer; }
+    .form-check-input:checked { background-color: #1a56db; border-color: #1a56db; }
+
+    /* Stat mini row */
+    .mini-stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 0; }
+    .mini-stat { text-align: center; padding: 1rem; background: #f8fafc; border-radius: 12px; }
+    .mini-stat .ms-val { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; color: #0d1b2a; }
+    .mini-stat .ms-lab { font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem; }
+
+    .danger-zone { border: 1.5px solid #fecaca !important; }
+    .btn-danger-soft { background: #fef2f2; color: #b91c1c; border: 1.5px solid #fecaca; border-radius: 9px; padding: 0.5rem 1.1rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-danger-soft:hover { background: #fee2e2; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg bg-white shadow-sm px-4">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-semibold" href="index.html">CivicCare</a>
+    <div class="ms-auto d-flex align-items-center gap-3">
+      <span class="fw-medium" id="navUserName">User</span>
+      <a href="login.html" class="btn btn-sm btn-outline-secondary rounded-3">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<div class="d-flex">
+  <aside class="sidebar">
+    <ul class="nav nav-pills flex-column gap-2">
+      <li><a class="nav-link text-white" href="dashboard.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+      <li><a class="nav-link text-white" href="complaint.html"><i class="bi bi-pencil-square me-2"></i>Raise Complaint</a></li>
+      <li><a class="nav-link text-white" href="track.html"><i class="bi bi-list-check me-2"></i>My Complaints</a></li>
+      <li><a class="nav-link text-white" href="notifications.html"><i class="bi bi-bell me-2"></i>Notifications</a></li>
+      <li><a class="nav-link active"><i class="bi bi-person-circle me-2"></i>Profile</a></li>
+    </ul>
+  </aside>
+
+  <main class="profile-main flex-grow-1 p-4">
+
+    <!-- HEADER -->
+    <div class="profile-header-card">
+      <div class="d-flex align-items-center gap-3 position-relative" style="z-index:2;">
+        <div class="avatar-circle" id="avatarCircle">U</div>
+        <div>
+          <h4 style="font-family:'Syne',sans-serif;font-weight:800;margin:0;" id="headerName">User</h4>
+          <div style="color:rgba(255,255,255,0.6);font-size:0.85rem;" id="headerEmail">user@example.com</div>
+          <div style="margin-top:0.5rem;">
+            <span style="background:rgba(26,86,219,0.3);color:#93c5fd;border-radius:50px;padding:0.2rem 0.75rem;font-size:0.75rem;font-weight:600;">Citizen Account</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+
+      <!-- LEFT COLUMN -->
+      <div class="col-lg-8">
+
+        <!-- Personal Info -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <i class="bi bi-person"></i>
+            <h6>Personal Information</h6>
+          </div>
+          <div class="settings-body">
+            <div class="row g-3">
+              <div class="col-6">
+                <label class="form-label">First Name</label>
+                <input type="text" class="form-control" id="firstName" placeholder="Rahul">
+              </div>
+              <div class="col-6">
+                <label class="form-label">Last Name</label>
+                <input type="text" class="form-control" id="lastName" placeholder="Sharma">
+              </div>
+              <div class="col-12">
+                <label class="form-label">Email Address</label>
+                <input type="email" class="form-control" id="emailField" placeholder="you@example.com">
+              </div>
+              <div class="col-6">
+                <label class="form-label">Mobile Number</label>
+                <input type="tel" class="form-control" id="mobileField" placeholder="+91 98765 43210">
+              </div>
+              <div class="col-6">
+                <label class="form-label">Ward / Area</label>
+                <input type="text" class="form-control" id="wardField" placeholder="Shivajinagar, Pune">
+              </div>
+            </div>
+            <div class="mt-3">
+              <button class="btn-save" onclick="saveProfile()"><i class="bi bi-check2 me-2"></i>Save Changes</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <i class="bi bi-shield-lock"></i>
+            <h6>Change Password</h6>
+          </div>
+          <div class="settings-body">
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label">Current Password</label>
+                <input type="password" class="form-control" id="currPass" placeholder="••••••••">
+              </div>
+              <div class="col-6">
+                <label class="form-label">New Password</label>
+                <input type="password" class="form-control" id="newPass" placeholder="Min. 8 characters">
+              </div>
+              <div class="col-6">
+                <label class="form-label">Confirm Password</label>
+                <input type="password" class="form-control" id="confPass" placeholder="Repeat password">
+              </div>
+            </div>
+            <div class="mt-3">
+              <button class="btn-save" onclick="changePassword()"><i class="bi bi-lock me-2"></i>Update Password</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="col-lg-4">
+
+        <!-- My Stats -->
+        <div class="settings-card mb-4">
+          <div class="settings-card-header">
+            <i class="bi bi-graph-up"></i>
+            <h6>My Activity</h6>
+          </div>
+          <div class="settings-body">
+            <div class="mini-stat-row">
+              <div class="mini-stat">
+                <div class="ms-val" id="statTotal">0</div>
+                <div class="ms-lab">Total</div>
+              </div>
+              <div class="mini-stat">
+                <div class="ms-val" id="statPending" style="color:#f59e0b;">0</div>
+                <div class="ms-lab">Pending</div>
+              </div>
+              <div class="mini-stat">
+                <div class="ms-val" id="statResolved" style="color:#22c55e;">0</div>
+                <div class="ms-lab">Resolved</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="settings-card mb-4">
+          <div class="settings-card-header">
+            <i class="bi bi-bell"></i>
+            <h6>Notification Preferences</h6>
+          </div>
+          <div class="settings-body">
+            <div class="setting-toggle-row">
+              <div class="toggle-label">
+                <h6>Status Updates</h6>
+                <p>When your complaint status changes</p>
+              </div>
+              <input class="form-check-input" type="checkbox" id="notifStatus" checked>
+            </div>
+            <div class="setting-toggle-row">
+              <div class="toggle-label">
+                <h6>Resolution Alerts</h6>
+                <p>When a complaint is resolved</p>
+              </div>
+              <input class="form-check-input" type="checkbox" id="notifResolved" checked>
+            </div>
+            <div class="setting-toggle-row">
+              <div class="toggle-label">
+                <h6>Weekly Digest</h6>
+                <p>Summary email every Monday</p>
+              </div>
+              <input class="form-check-input" type="checkbox" id="notifDigest">
+            </div>
+            <div class="mt-3">
+              <button class="btn-save" onclick="saveNotifPrefs()"><i class="bi bi-bell me-2"></i>Save Preferences</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="settings-card danger-zone">
+          <div class="settings-card-header">
+            <i class="bi bi-exclamation-triangle" style="color:#ef4444;"></i>
+            <h6 style="color:#ef4444;">Danger Zone</h6>
+          </div>
+          <div class="settings-body">
+            <p style="font-size:0.82rem;color:#64748b;margin-bottom:1rem;">Permanently delete your account and all associated data. This action cannot be undone.</p>
+            <button class="btn-danger-soft" onclick="confirmDelete()"><i class="bi bi-trash me-1"></i>Delete Account</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function loadProfile() {
+    try {
+      const u = JSON.parse(localStorage.getItem('civiccare_user') || '{}');
+      const name = u.name || 'User';
+      const parts = name.split(' ');
+      document.getElementById('firstName').value = parts[0] || '';
+      document.getElementById('lastName').value = parts.slice(1).join(' ') || '';
+      document.getElementById('emailField').value = u.email || '';
+      document.getElementById('mobileField').value = u.mobile || '';
+      document.getElementById('wardField').value = u.ward || '';
+      document.getElementById('headerName').textContent = name;
+      document.getElementById('headerEmail').textContent = u.email || '';
+      document.getElementById('navUserName').textContent = name;
+      document.getElementById('avatarCircle').textContent = name.charAt(0).toUpperCase();
+    } catch(e) {}
+  }
+
+  function loadStats() {
+    const complaints = JSON.parse(localStorage.getItem('civiccare_complaints') || '[]');
+    document.getElementById('statTotal').textContent = complaints.length;
+    document.getElementById('statPending').textContent = complaints.filter(c=>c.status==='Pending').length;
+    document.getElementById('statResolved').textContent = complaints.filter(c=>c.status==='Resolved').length;
+  }
+
+  function saveProfile() {
+    const first = document.getElementById('firstName').value.trim();
+    const last = document.getElementById('lastName').value.trim();
+    const email = document.getElementById('emailField').value.trim();
+    const mobile = document.getElementById('mobileField').value.trim();
+    const ward = document.getElementById('wardField').value.trim();
+    const u = { name: `${first} ${last}`.trim(), email, mobile, ward };
+    localStorage.setItem('civiccare_user', JSON.stringify(u));
+    document.getElementById('headerName').textContent = u.name;
+    document.getElementById('avatarCircle').textContent = u.name.charAt(0).toUpperCase();
+    showToast('Profile saved!', 'success');
+  }
+
+  function changePassword() {
+    const np = document.getElementById('newPass').value;
+    const cp = document.getElementById('confPass').value;
+    if (!np || np.length < 8) { showToast('New password must be at least 8 characters.', 'warning'); return; }
+    if (np !== cp) { showToast('Passwords do not match.', 'danger'); return; }
+    showToast('Password updated successfully!', 'success');
+    document.getElementById('currPass').value = '';
+    document.getElementById('newPass').value = '';
+    document.getElementById('confPass').value = '';
+  }
+
+  function saveNotifPrefs() {
+    showToast('Notification preferences saved!', 'success');
+  }
+
+  function confirmDelete() {
+    if (confirm('Are you sure? This will delete all your data permanently.')) {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+  }
+
+  function showToast(msg, type='success') {
+    const existing = document.getElementById('profileToast');
+    if (existing) existing.remove();
+    const colors = { success:'#22c55e', danger:'#ef4444', warning:'#f59e0b' };
+    const icons = { success:'✓', danger:'✗', warning:'⚠' };
+    const t = document.createElement('div');
+    t.id = 'profileToast';
+    t.style.cssText = `position:fixed;bottom:24px;right:24px;background:#0d1b2a;color:#fff;padding:0.85rem 1.25rem;border-radius:12px;font-size:0.88rem;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:9999;display:flex;align-items:center;gap:0.6rem;max-width:320px;border-left:4px solid ${colors[type]||'#1a56db'};`;
+    t.innerHTML = `<span style="color:${colors[type]};font-weight:700;">${icons[type]||'i'}</span>${msg}`;
+    document.body.appendChild(t);
+    setTimeout(()=>t.remove(), 3000);
+  }
+
+  loadProfile();
+  loadStats();
+</script>
+</body>
+</html>

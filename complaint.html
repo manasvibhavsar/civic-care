@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicCare | Raise a Complaint</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="static/complaint.css">
+
+  <style>
+    /* ── SUCCESS SCREEN ── */
+    #successScreen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #f8fafc;
+      z-index: 9999;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.4s ease;
+    }
+    #successScreen.show { display: flex; }
+    .success-circle {
+      width: 90px; height: 90px;
+      background: #f0fdf4;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1.5rem;
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .success-circle i { font-size: 2.5rem; color: #22c55e; }
+    .success-id {
+      background: #eff6ff;
+      border: 1.5px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 0.75rem 2rem;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.4rem;
+      color: #1a56db;
+      letter-spacing: 1px;
+      margin: 1rem 0 0.5rem;
+    }
+
+    /* ── UPLOAD ZONE ── */
+    .upload-zone {
+      border: 2px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 2rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #fafbff;
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: #1a56db;
+      background: #eff6ff;
+    }
+    .upload-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-zone .upload-icon {
+      width: 52px; height: 52px;
+      background: #eff6ff;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 0.85rem;
+      font-size: 1.4rem; color: #1a56db;
+    }
+
+    /* ── PREVIEW IMAGE ── */
+    #imagePreviewWrap {
+      display: none;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      margin-top: 0.75rem;
+    }
+    #imagePreviewWrap img {
+      width: 100%; max-height: 220px;
+      object-fit: cover; display: block;
+    }
+    #removeImageBtn {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(0,0,0,0.55);
+      border: none; border-radius: 50%;
+      width: 28px; height: 28px;
+      color: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem;
+    }
+
+    /* ── AI BUTTON ── */
+    #aiAssistBtn {
+      width: 100%;
+      background: linear-gradient(135deg, #1a56db, #7c3aed);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      margin-top: 0.85rem;
+    }
+    #aiAssistBtn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(26,86,219,0.35);
+    }
+    #aiAssistBtn:disabled { opacity: 0.75; cursor: not-allowed; transform: none; }
+
+    /* ── STEPS INDICATOR ── */
+    .steps-bar {
+      display: flex; align-items: center; gap: 0; margin-bottom: 2rem;
+    }
+    .step-item {
+      display: flex; align-items: center; gap: 0.5rem; flex: 1;
+    }
+    .step-dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+      transition: all 0.3s;
+    }
+    .step-dot.active { background: #1a56db; color: #fff; }
+    .step-dot.done { background: #22c55e; color: #fff; }
+    .step-dot.inactive { background: #e2e8f0; color: #94a3b8; }
+    .step-label { font-size: 0.75rem; font-weight: 600; color: #64748b; white-space: nowrap; }
+    .step-line { flex: 1; height: 2px; background: #e2e8f0; margin: 0 0.5rem; }
+    .step-line.done { background: #22c55e; }
+
+    /* ── FIELD VALIDATION ── */
+    .form-control.is-invalid, .form-select.is-invalid {
+      border-color: #ef4444 !important;
+      box-shadow: 0 0 0 3px rgba(239,68,68,0.1) !important;
+    }
+    .field-error { font-size: 0.78rem; color: #ef4444; margin-top: 0.3rem; display: none; }
+    .field-error.show { display: block; }
+
+    /* ── CHAR COUNTER ── */
+    .char-counter { font-size: 0.75rem; color: #94a3b8; text-align: right; margin-top: 0.25rem; }
+    .char-counter.warn { color: #f59e0b; }
+
+    /* ── TIPS CARD ── */
+    .tips-card {
+      background: #fffbeb;
+      border: 1.5px solid #fde68a;
+      border-radius: 14px;
+      padding: 1.25rem;
+    }
+    .tip-item { display: flex; gap: 0.6rem; font-size: 0.83rem; color: #78350f; margin-bottom: 0.6rem; }
+    .tip-item:last-child { margin-bottom: 0; }
+    .tip-item i { color: #f59e0b; flex-shrink: 0; margin-top: 2px; }
+
+    /* ── CATEGORY GRID ── */
+    .category-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      margin-bottom: 0.75rem;
+    }
+    .cat-btn {
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 0.65rem 0.75rem;
+      background: #fff;
+      cursor: pointer;
+      font-size: 0.83rem;
+      font-weight: 500;
+      color: #374151;
+      display: flex; align-items: center; gap: 0.5rem;
+      transition: all 0.15s;
+      text-align: left;
+    }
+    .cat-btn:hover { border-color: #1a56db; background: #eff6ff; color: #1a56db; }
+    .cat-btn.selected { border-color: #1a56db; background: #eff6ff; color: #1a56db; font-weight: 700; }
+    .cat-btn i { font-size: 1rem; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  </style>
+</head>
+<body>
+
+<!-- SUCCESS SCREEN -->
+<div id="successScreen">
+  <div style="text-align:center;max-width:420px;padding:2rem;">
+    <div class="success-circle"><i class="bi bi-check-lg"></i></div>
+    <h3 style="font-family:'Syne',sans-serif;font-weight:800;color:#0d1b2a;margin-bottom:0.4rem;">Complaint Submitted!</h3>
+    <p style="color:#64748b;font-size:0.92rem;">Your complaint has been received and is under review by the municipal authority.</p>
+    <div class="success-id" id="successId">CC-1001</div>
+    <p style="font-size:0.8rem;color:#94a3b8;margin-bottom:1.5rem;">Save this ID to track your complaint</p>
+    <div style="display:flex;gap:0.75rem;justify-content:center;">
+      <a href="track.html" class="btn btn-primary px-4 rounded-3" style="font-family:'Syne',sans-serif;font-weight:700;">
+        <i class="bi bi-list-check me-2"></i>Track Complaint
+      </a>
+      <button onclick="resetForm()" class="btn btn-outline-secondary px-4 rounded-3" style="font-weight:600;">
+        <i class="bi bi-plus-lg me-2"></i>New Complaint
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg bg-white shadow-sm px-4">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-semibold" href="dashboard.html">CivicCare</a>
+    <div class="ms-auto dropdown">
+      <a class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+        <img src="https://i.pravatar.cc/32" class="rounded-circle me-2" width="28">
+        <span id="navUserName">User</span>
+      </a>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li><a class="dropdown-item" href="profile.html"><i class="bi bi-person me-2"></i>Profile</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item text-danger" href="login.html"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="d-flex">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <ul class="nav nav-pills flex-column gap-2">
+      <li class="nav-item">
+        <a class="nav-link text-white" href="dashboard.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active" href="complaint.html"><i class="bi bi-pencil-square me-2"></i>Raise Complaint</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-white" href="track.html"><i class="bi bi-list-check me-2"></i>My Complaints</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-white" href="notifications.html"><i class="bi bi-bell me-2"></i>Notifications</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-white" href="profile.html"><i class="bi bi-person-circle me-2"></i>Profile</a>
+      </li>
+      <li class="nav-item" style="margin-top:1rem;border-top:1px solid rgba(255,255,255,0.1);padding-top:1rem;">
+        <a class="nav-link text-white" href="admin.html"><i class="bi bi-shield-check me-2"></i>Admin Panel</a>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="complaint-main flex-grow-1 p-4">
+    <div style="max-width: 860px; margin: 0 auto;">
+
+      <!-- PAGE HEADER -->
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+          <h4 style="font-family:'Syne',sans-serif;font-weight:800;letter-spacing:-0.5px;margin-bottom:0.2rem;">Raise a Complaint</h4>
+          <p style="font-size:0.85rem;color:#64748b;margin:0;">Fill in the details below and let AI help describe the issue</p>
+        </div>
+        <a href="track.html" class="btn btn-sm btn-outline-secondary rounded-3" style="font-size:0.82rem;">
+          <i class="bi bi-list-check me-1"></i>My Complaints
+        </a>
+      </div>
+
+      <!-- STEPS -->
+      <div class="steps-bar">
+        <div class="step-item">
+          <div class="step-dot active" id="step1dot">1</div>
+          <span class="step-label">Details</span>
+        </div>
+        <div class="step-line" id="line1"></div>
+        <div class="step-item">
+          <div class="step-dot inactive" id="step2dot">2</div>
+          <span class="step-label">Location</span>
+        </div>
+        <div class="step-line" id="line2"></div>
+        <div class="step-item">
+          <div class="step-dot inactive" id="step3dot">3</div>
+          <span class="step-label">Photo & AI</span>
+        </div>
+        <div class="step-line" id="line3"></div>
+        <div class="step-item">
+          <div class="step-dot inactive" id="step4dot">4</div>
+          <span class="step-label">Review</span>
+        </div>
+      </div>
+
+      <div class="row g-4">
+
+        <!-- LEFT: FORM -->
+        <div class="col-lg-8">
+          <form id="complaintForm" novalidate>
+
+            <!-- CARD 1: PERSONAL DETAILS -->
+            <div class="complaint-card card mb-3">
+              <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <div style="width:32px;height:32px;background:#eff6ff;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#1a56db;font-size:0.9rem;flex-shrink:0;">
+                    <i class="bi bi-person"></i>
+                  </div>
+                  <h6 style="font-family:'Syne',sans-serif;font-weight:700;margin:0;">Your Details</h6>
+                </div>
+                <div class="row g-3">
+                  <div class="col-sm-6">
+                    <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="citizenName" placeholder="e.g. Rahul Sharma" autocomplete="name">
+                    <div class="field-error" id="err-name">Please enter your name</div>
+                  </div>
+                  <div class="col-sm-6">
+                    <label class="form-label">Contact Number <span class="text-danger">*</span></label>
+                    <div style="position:relative;">
+                      <span style="position:absolute;left:0.85rem;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:0.85rem;">+91</span>
+                      <input type="tel" class="form-control" id="contactNumber" placeholder="98765 43210" maxlength="10" style="padding-left:2.75rem;" autocomplete="tel">
+                    </div>
+                    <div class="field-error" id="err-contact">Enter a valid 10-digit number</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- CARD 2: CATEGORY -->
+            <div class="complaint-card card mb-3">
+              <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <div style="width:32px;height:32px;background:#fff7ed;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#c2410c;font-size:0.9rem;flex-shrink:0;">
+                    <i class="bi bi-tag"></i>
+                  </div>
+                  <h6 style="font-family:'Syne',sans-serif;font-weight:700;margin:0;">Category <span class="text-danger">*</span></h6>
+                </div>
+                <!-- Quick select buttons -->
+                <div class="category-grid">
+                  <button type="button" class="cat-btn" data-cat="Road Damage" onclick="selectCategory(this)">
+                    <i class="bi bi-cone-striped"></i> Road Damage
+                  </button>
+                  <button type="button" class="cat-btn" data-cat="Garbage" onclick="selectCategory(this)">
+                    <i class="bi bi-trash3"></i> Garbage
+                  </button>
+                  <button type="button" class="cat-btn" data-cat="Street Light" onclick="selectCategory(this)">
+                    <i class="bi bi-lightbulb"></i> Street Light
+                  </button>
+                  <button type="button" class="cat-btn" data-cat="Water Supply" onclick="selectCategory(this)">
+                    <i class="bi bi-droplet"></i> Water Supply
+                  </button>
+                </div>
+                <!-- Fallback select -->
+                <select class="form-select" id="category" style="font-size:0.85rem;">
+                  <option value="">— Or select from list —</option>
+                  <option>Road Damage</option>
+                  <option>Garbage</option>
+                  <option>Street Light</option>
+                  <option>Water Supply</option>
+                  <option>Sewage</option>
+                  <option>Park & Recreation</option>
+                  <option>Noise Pollution</option>
+                  <option>Other</option>
+                </select>
+                <div class="field-error" id="err-category">Please select a category</div>
+              </div>
+            </div>
+
+            <!-- CARD 3: LOCATION -->
+            <div class="complaint-card card mb-3">
+              <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <div style="width:32px;height:32px;background:#f0fdf4;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#15803d;font-size:0.9rem;flex-shrink:0;">
+                    <i class="bi bi-geo-alt"></i>
+                  </div>
+                  <h6 style="font-family:'Syne',sans-serif;font-weight:700;margin:0;">Location <span class="text-danger">*</span></h6>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Street / Area</label>
+                  <input type="text" class="form-control" id="location" placeholder="e.g. FC Road Junction, Near Café Coffee Day, Pune">
+                  <div class="field-error" id="err-location">Please enter the complaint location</div>
+                </div>
+                <div class="row g-3">
+                  <div class="col-sm-6">
+                    <label class="form-label">City</label>
+                    <input type="text" class="form-control" id="city" placeholder="e.g. Pune">
+                  </div>
+                  <div class="col-sm-6">
+                    <label class="form-label">Pincode</label>
+                    <input type="text" class="form-control" id="pincode" placeholder="e.g. 411004" maxlength="6">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- CARD 4: PHOTO + AI -->
+            <div class="complaint-card card mb-3">
+              <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <div style="width:32px;height:32px;background:#fdf4ff;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#7c3aed;font-size:0.9rem;flex-shrink:0;">
+                    <i class="bi bi-camera"></i>
+                  </div>
+                  <h6 style="font-family:'Syne',sans-serif;font-weight:700;margin:0;">Photo <span style="font-weight:400;color:#94a3b8;font-size:0.78rem;">(optional but helps AI)</span></h6>
+                </div>
+
+                <!-- Upload zone -->
+                <div class="upload-zone" id="uploadZone">
+                  <input type="file" id="image" accept="image/*">
+                  <div class="upload-icon"><i class="bi bi-cloud-upload"></i></div>
+                  <div style="font-weight:600;font-size:0.88rem;color:#374151;margin-bottom:0.3rem;">Drop photo here or click to browse</div>
+                  <div style="font-size:0.78rem;color:#94a3b8;">JPG, PNG up to 10MB</div>
+                </div>
+
+                <!-- Image preview -->
+                <div id="imagePreviewWrap">
+                  <img id="previewImage" src="" alt="Preview">
+                  <button type="button" id="removeImageBtn" onclick="removeImage()" title="Remove photo">
+                    <i class="bi bi-x"></i>
+                  </button>
+                </div>
+
+                <!-- AI Button -->
+                <button type="button" id="aiAssistBtn">
+                  <i class="bi bi-stars"></i>
+                  <span class="btn-text">Generate Description with AI</span>
+                </button>
+                <div style="font-size:0.75rem;color:#94a3b8;text-align:center;margin-top:0.4rem;">
+                  Upload a photo first for best results, or AI will use the category
+                </div>
+              </div>
+            </div>
+
+            <!-- CARD 5: DESCRIPTION -->
+            <div class="complaint-card card mb-4">
+              <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <div style="width:32px;height:32px;background:#eff6ff;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#1a56db;font-size:0.9rem;flex-shrink:0;">
+                    <i class="bi bi-text-paragraph"></i>
+                  </div>
+                  <h6 style="font-family:'Syne',sans-serif;font-weight:700;margin:0;">Description <span class="text-danger">*</span></h6>
+                </div>
+                <textarea class="form-control" id="description" rows="4"
+                  placeholder="Describe the issue in detail — what you see, how severe it is, how long it has been there..."
+                  oninput="updateCharCount(this)" maxlength="600"></textarea>
+                <div class="char-counter" id="charCounter">0 / 600</div>
+                <div class="field-error" id="err-description">Please add a description (min 20 characters)</div>
+              </div>
+            </div>
+
+            <!-- SUBMIT -->
+            <button type="submit" class="btn btn-primary w-100 py-3" style="font-size:1rem;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:0.3px;">
+              <i class="bi bi-send me-2"></i>Submit Complaint
+            </button>
+            <p style="font-size:0.75rem;color:#94a3b8;text-align:center;margin-top:0.75rem;">
+              Your complaint will be assigned a unique ID and forwarded to the relevant department.
+            </p>
+
+          </form>
+        </div>
+
+        <!-- RIGHT: TIPS -->
+        <div class="col-lg-4">
+
+          <!-- HOW IT WORKS -->
+          <div class="complaint-card card mb-3">
+            <div class="card-body p-4">
+              <h6 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:1rem;">How it works</h6>
+              <div style="display:flex;flex-direction:column;gap:1rem;">
+                <div style="display:flex;gap:0.75rem;align-items:flex-start;">
+                  <div style="width:28px;height:28px;background:#eff6ff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:800;color:#1a56db;flex-shrink:0;">1</div>
+                  <div>
+                    <div style="font-weight:600;font-size:0.84rem;color:#0d1b2a;">Fill the form</div>
+                    <div style="font-size:0.78rem;color:#64748b;">Add your details, category and location</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:0.75rem;align-items:flex-start;">
+                  <div style="width:28px;height:28px;background:#fdf4ff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:800;color:#7c3aed;flex-shrink:0;">2</div>
+                  <div>
+                    <div style="font-weight:600;font-size:0.84rem;color:#0d1b2a;">Upload photo + use AI</div>
+                    <div style="font-size:0.78rem;color:#64748b;">AI reads your photo and writes a formal complaint</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:0.75rem;align-items:flex-start;">
+                  <div style="width:28px;height:28px;background:#f0fdf4;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:800;color:#15803d;flex-shrink:0;">3</div>
+                  <div>
+                    <div style="font-weight:600;font-size:0.84rem;color:#0d1b2a;">Get your complaint ID</div>
+                    <div style="font-size:0.78rem;color:#64748b;">Track real-time status updates anytime</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TIPS -->
+          <div class="tips-card mb-3">
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.88rem;color:#92400e;margin-bottom:0.85rem;">
+              <i class="bi bi-lightbulb-fill me-1"></i> Tips for faster resolution
+            </div>
+            <div class="tip-item"><i class="bi bi-check2-circle"></i> Upload a clear photo — it speeds up verification</div>
+            <div class="tip-item"><i class="bi bi-check2-circle"></i> Include landmarks in the location field</div>
+            <div class="tip-item"><i class="bi bi-check2-circle"></i> Use AI to generate a formal description</div>
+            <div class="tip-item"><i class="bi bi-check2-circle"></i> Select the most specific category available</div>
+          </div>
+
+          <!-- DEPT INFO -->
+          <div class="complaint-card card">
+            <div class="card-body p-4">
+              <h6 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:0.85rem;">Departments</h6>
+              <div style="display:flex;flex-direction:column;gap:0.6rem;font-size:0.82rem;">
+                <div style="display:flex;align-items:center;gap:0.5rem;color:#64748b;">
+                  <i class="bi bi-cone-striped" style="color:#f59e0b;"></i> Road Damage → Roads & Infrastructure
+                </div>
+                <div style="display:flex;align-items:center;gap:0.5rem;color:#64748b;">
+                  <i class="bi bi-trash3" style="color:#22c55e;"></i> Garbage → Sanitation Dept.
+                </div>
+                <div style="display:flex;align-items:center;gap:0.5rem;color:#64748b;">
+                  <i class="bi bi-lightbulb" style="color:#eab308;"></i> Street Light → Electricity Dept.
+                </div>
+                <div style="display:flex;align-items:center;gap:0.5rem;color:#64748b;">
+                  <i class="bi bi-droplet" style="color:#3b82f6;"></i> Water Supply → Water Supply Dept.
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+
+  // ── LOAD USER NAME ───────────────────────────────────────────
+  try {
+    const u = JSON.parse(localStorage.getItem('civiccare_user') || '{}');
+    if (u.name) {
+      document.getElementById('citizenName').value = u.name;
+      document.getElementById('navUserName').textContent = u.name.split(' ')[0];
+    }
+    if (u.phone) document.getElementById('contactNumber').value = u.phone;
+  } catch(e) {}
+
+  // ── CATEGORY BUTTON SELECT ───────────────────────────────────
+  function selectCategory(btn) {
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    document.getElementById('category').value = btn.dataset.cat;
+    clearError('category');
+  }
+
+  // Sync category buttons when dropdown changes
+  document.getElementById('category').addEventListener('change', function() {
+    document.querySelectorAll('.cat-btn').forEach(b => {
+      b.classList.toggle('selected', b.dataset.cat === this.value);
+    });
+    clearError('category');
+  });
+
+  // ── IMAGE UPLOAD & PREVIEW ───────────────────────────────────
+  const imageInput = document.getElementById('image');
+  const previewImage = document.getElementById('previewImage');
+  const imagePreviewWrap = document.getElementById('imagePreviewWrap');
+  const uploadZone = document.getElementById('uploadZone');
+
+  imageInput.addEventListener('change', function() {
+    const file = this.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        previewImage.src = e.target.result;
+        imagePreviewWrap.style.display = 'block';
+        uploadZone.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Drag & drop
+  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) {
+      imageInput.files = e.dataTransfer.files;
+      imageInput.dispatchEvent(new Event('change'));
+    }
+  });
+
+  function removeImage() {
+    imageInput.value = '';
+    previewImage.src = '';
+    imagePreviewWrap.style.display = 'none';
+    uploadZone.style.display = 'block';
+  }
+
+  // ── CHAR COUNTER ─────────────────────────────────────────────
+  function updateCharCount(el) {
+    const counter = document.getElementById('charCounter');
+    const len = el.value.length;
+    counter.textContent = `${len} / 600`;
+    counter.className = 'char-counter' + (len > 500 ? ' warn' : '');
+    if (len >= 20) clearError('description');
+  }
+
+  // ── FIELD VALIDATION ─────────────────────────────────────────
+  function showError(field) {
+    document.getElementById(field === 'name' ? 'citizenName' : field)?.classList.add('is-invalid');
+    const err = document.getElementById(`err-${field}`);
+    if (err) err.classList.add('show');
+  }
+  function clearError(field) {
+    document.getElementById(field === 'name' ? 'citizenName' : field)?.classList.remove('is-invalid');
+    const err = document.getElementById(`err-${field}`);
+    if (err) err.classList.remove('show');
+  }
+
+  // Clear errors on input
+  ['citizenName','location','description'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', function() {
+      if (this.value.trim()) this.classList.remove('is-invalid');
+    });
+  });
+
+  // ── STEPS INDICATOR ──────────────────────────────────────────
+  function updateSteps() {
+    const name = document.getElementById('citizenName').value.trim();
+    const cat = document.getElementById('category').value;
+    const loc = document.getElementById('location').value.trim();
+    const hasImage = imageInput.files.length > 0;
+    const desc = document.getElementById('description').value.trim();
+
+    const s1 = name && cat;
+    const s2 = loc;
+    const s3 = hasImage || desc;
+
+    setStep(1, s1 ? 'done' : 'active');
+    setStep(2, s2 ? 'done' : (s1 ? 'active' : 'inactive'));
+    setStep(3, s3 ? 'done' : (s2 ? 'active' : 'inactive'));
+    setStep(4, (s1 && s2 && s3) ? 'active' : 'inactive');
+
+    document.getElementById('line1').className = 'step-line' + (s1 ? ' done' : '');
+    document.getElementById('line2').className = 'step-line' + (s2 ? ' done' : '');
+    document.getElementById('line3').className = 'step-line' + (s3 ? ' done' : '');
+  }
+
+  function setStep(n, state) {
+    const dot = document.getElementById(`step${n}dot`);
+    dot.className = `step-dot ${state}`;
+    dot.textContent = state === 'done' ? '✓' : n;
+  }
+
+  document.querySelectorAll('#complaintForm input, #complaintForm select, #complaintForm textarea')
+    .forEach(el => el.addEventListener('input', updateSteps));
+
+  // ── FORM SUBMIT ───────────────────────────────────────────────
+  document.getElementById('complaintForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const name = document.getElementById('citizenName').value.trim();
+    const contact = document.getElementById('contactNumber').value.trim();
+    const category = document.getElementById('category').value;
+    const location = document.getElementById('location').value.trim();
+    const description = document.getElementById('description').value.trim();
+    const city = document.getElementById('city').value.trim();
+
+    let valid = true;
+
+    if (!name) { showError('name'); valid = false; }
+    if (contact && !/^\d{10}$/.test(contact)) { showError('contact'); valid = false; }
+    if (!category) { showError('category'); valid = false; }
+    if (!location) { showError('location'); valid = false; }
+    if (!description || description.length < 20) { showError('description'); valid = false; }
+
+    if (!valid) {
+      showToast('Please fill in all required fields correctly.', 'warning');
+      // Scroll to first error
+      document.querySelector('.is-invalid')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    const complaints = JSON.parse(localStorage.getItem('civiccare_complaints') || '[]');
+    const newId = 'CC-' + (1001 + complaints.length);
+
+    const deptMap = {
+      'Garbage': 'Sanitation Dept.',
+      'Street Light': 'Electricity Dept.',
+      'Road Damage': 'Roads & Infrastructure',
+      'Water Supply': 'Water Supply Dept.'
+    };
+
+    const fullLocation = [location, city].filter(Boolean).join(', ');
+
+    complaints.push({
+      id: newId,
+      category,
+      description,
+      location: fullLocation,
+      department: deptMap[category] || 'Municipal Dept.',
+      status: 'Pending',
+      date: new Date().toISOString(),
+      citizen: name,
+      contact: contact || ''
+    });
+    localStorage.setItem('civiccare_complaints', JSON.stringify(complaints));
+
+    // Notification
+    const notifs = JSON.parse(localStorage.getItem('civiccare_notifs') || '[]');
+    notifs.unshift({
+      id: `n-${newId}`,
+      type: 'status',
+      title: 'Complaint Submitted',
+      desc: `Your complaint #${newId} (${category}) has been received and is under review.`,
+      time: new Date().toISOString(),
+      read: false,
+      icon: 'bi-inbox',
+      iconClass: 'ni-blue'
+    });
+    localStorage.setItem('civiccare_notifs', JSON.stringify(notifs));
+
+    // Show success screen
+    document.getElementById('successId').textContent = newId;
+    document.getElementById('successScreen').classList.add('show');
+  });
+
+  function resetForm() {
+    document.getElementById('successScreen').classList.remove('show');
+    document.getElementById('complaintForm').reset();
+    removeImage();
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    document.querySelectorAll('.field-error.show').forEach(el => el.classList.remove('show'));
+    document.getElementById('charCounter').textContent = '0 / 600';
+    updateSteps();
+  }
+
+</script>
+
+<!-- Load the original complaint.js for the AI button logic -->
+<script src="static/complaint.js"></script>
+
+</body>
+</html>
