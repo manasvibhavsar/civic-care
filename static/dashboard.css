@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+:root {
+  --navy: #0d1b2a;
+  --blue: #1a56db;
+  --sky: #3b82f6;
+  --accent: #f59e0b;
+  --sidebar-w: 220px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+h1,h2,h3,h4,h5,.navbar-brand { font-family: 'Syne', sans-serif !important; }
+
+/* NAVBAR */
+.navbar {
+  height: 56px;
+  z-index: 100;
+  position: sticky;
+  top: 0;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.navbar-brand {
+  font-weight: 800 !important;
+  font-size: 1.25rem !important;
+  color: #0d1b2a !important;
+  letter-spacing: -0.5px;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w);
+  min-height: calc(100vh - 56px);
+  background: var(--navy);
+  padding: 1.25rem 0.75rem;
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.sidebar .nav-link {
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+
+.sidebar .nav-link.active {
+  background: var(--blue) !important;
+  color: #fff !important;
+}
+
+.sidebar .nav-link:hover:not(.active) {
+  background: rgba(255,255,255,0.1);
+}
+
+/* STAT CARDS */
+.stat-card {
+  border-radius: 14px !important;
+  border: none !important;
+  padding: 0.25rem;
+}
+
+.stat-card.bg-primary {
+  background: linear-gradient(135deg, var(--blue), #1447c5) !important;
+  box-shadow: 0 4px 20px rgba(26,86,219,0.3);
+}
+
+.stat-card h2 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+/* TABLE */
+.table th {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.table td {
+  font-size: 0.88rem;
+  vertical-align: middle;
+  border-color: #f1f5f9;
+}
+
+.badge { border-radius: 50px !important; font-weight: 600; }
+
+/* DASHBOARD MAIN */
+.dashboard-main {
+  background: #f8fafc;
+  min-height: calc(100vh - 56px);
+}
+
+.card {
+  border-radius: 14px !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.card-body { padding: 1.5rem !important; }
