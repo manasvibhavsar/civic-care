@@ -1,5 +1,5 @@
 // ─── GEMINI CONFIG ───────────────────────────────────────────
-const GEMINI_API_KEY = 'AIzaSyD7ISUJIfnRrXIQmWrzeo5TToY02P0krD4';
+const GEMINI_API_KEY = 'AIzaSyBnWK63_xyTz4L0o6jy62HldpyQEFakEwM';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 // ─── IMAGE PREVIEW ────────────────────────────────────────────
