@@ -32,7 +32,8 @@
       width: 45%;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: center;
+      gap: 0;
       padding: 2.5rem 3rem;
       position: relative;
       overflow: hidden;
@@ -60,6 +61,10 @@
       color: #fff;
       text-decoration: none;
       letter-spacing: -0.5px;
+      position: absolute;
+      top: 2.5rem;
+      left: 3rem;
+      z-index: 3;
     }
 
     .panel-brand span { color: var(--accent); }
@@ -79,9 +84,9 @@
     }
 
     .panel-content p {
-      color: rgba(255,255,255,0.6);
-      font-size: 0.95rem;
-      line-height: 1.7;
+      color: rgba(255,255,255,0.72);
+      font-size: 1rem;
+      line-height: 1.6;
       max-width: 340px;
     }
 
@@ -114,8 +119,10 @@
     .panel-bottom {
       color: rgba(255,255,255,0.35);
       font-size: 0.8rem;
-      position: relative;
-      z-index: 2;
+      position: absolute;
+      bottom: 2rem;
+      left: 3rem;
+      z-index: 3;
     }
 
     /* RIGHT PANEL */
@@ -319,7 +326,7 @@
 
   <div class="panel-content">
     <h2>Make your city work for you.</h2>
-    <p>A transparent, AI-powered platform where citizen complaints become civic action — tracked from submission to resolution.</p>
+    <p>Report city issues. Track every update. Make your voice count.</p>
 
     <div class="panel-features">
       <div class="panel-feat">
