@@ -1,6 +1,6 @@
 // ─── GEMINI CONFIG ───────────────────────────────────────────
-const GEMINI_API_KEY = 'Your key';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_API_KEY = 'paste your gemini key';
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 // ─── IMAGE PREVIEW ────────────────────────────────────────────
 document.getElementById('image').addEventListener('change', function () {
